@@ -1,0 +1,42 @@
+{
+  "name": "web_scraper",
+  "display_name": "网页爬取器",
+  "version": "1.0.0",
+  "description": "使用 Scrapling 爬取网页内容的插件，支持自动检测链接、普通请求、隐身模式和动态加载",
+  "author": "MoFox Team",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "plugins": [],
+    "components": []
+  },
+  "include": [
+    {
+      "component_type": "event_handler",
+      "component_name": "web_scraper_handler",
+      "dependencies": [],
+      "enabled": true
+    },
+    {
+      "component_type": "tool",
+      "component_name": "fetch_webpage",
+      "dependencies": [],
+      "enabled": true
+    },
+    {
+      "component_type": "tool",
+      "component_name": "fetch_webpage_stealth",
+      "dependencies": [],
+      "enabled": true
+    },
+    {
+      "component_type": "tool",
+      "component_name": "fetch_webpage_dynamic",
+      "dependencies": [],
+      "enabled": true
+    }
+  ],
+  "entry_point": "plugin.py",
+  "min_core_version": "1.0.0",
+  "python_dependencies": ["scrapling[fetchers]"],
+  "dependencies_required": true
+}
