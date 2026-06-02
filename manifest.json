@@ -1,10 +1,12 @@
 {
   "name": "web_scraper",
   "display_name": "网页爬取器",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "使用 Scrapling 爬取网页内容的插件，支持自动检测链接、普通请求、隐身模式和动态加载",
   "author": "ikun两年半喵",
   "license": "AGPL-3.0",
+  "categories": ["information", "tool"],
+  "tags": ["web", "scraper", "爬虫", "网页", "fetch", "scrapling"],
   "dependencies": {
     "plugins": [],
     "components": []

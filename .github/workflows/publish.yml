@@ -1,0 +1,73 @@
+name: Publish Plugin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'manifest.json'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.MPDT_GITHUB_TOKEN }}
+
+      - name: Check version change
+        id: version
+        run: |
+          CURRENT=$(python -c "import json; print(json.load(open('manifest.json'))['version'])")
+          PREVIOUS=$(git show HEAD~1:manifest.json 2>/dev/null | python -c "import json,sys; print(json.load(sys.stdin)['version'])" || echo "none")
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "previous=$PREVIOUS" >> $GITHUB_OUTPUT
+          if [ "$CURRENT" != "$PREVIOUS" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "📦 版本变更: $PREVIOUS -> $CURRENT"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "⏭️ 版本未变更，跳过发布"
+          fi
+
+      - name: Set up Python
+        if: steps.version.outputs.changed == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install mofox-plugin-dev-toolkit
+        if: steps.version.outputs.changed == 'true'
+        run: pip install mofox-plugin-dev-toolkit
+
+      - name: Configure GitHub token
+        if: steps.version.outputs.changed == 'true'
+        run: mpdt config edit github.token ${{ secrets.MPDT_GITHUB_TOKEN }}
+
+      - name: Publish plugin
+        if: steps.version.outputs.changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.MPDT_GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.MPDT_GITHUB_TOKEN }}
+        run: |
+          mpdt market package-update . --skip-push
+
+      - name: Push tag
+        if: steps.version.outputs.changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.MPDT_GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.current }}"
+          TAG="v${VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f -a "$TAG" -m "Release ${TAG}"
+          git push origin tag "$TAG" --force
+
+      - name: Summary
+        if: steps.version.outputs.changed == 'true'
+        run: echo "✅ web_scraper v${{ steps.version.outputs.current }} 已发布" >> $GITHUB_STEP_SUMMARY
